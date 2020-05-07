@@ -99,11 +99,6 @@ class VacuumCard extends LitElement {
     );
   }
 
-  handleSpeed(e) {
-    const fan_speed = e.target.getAttribute('value');
-    this.callService('set_fan_speed', { fan_speed });
-  }
-
   callService(service, options = {}) {
     this.hass.callService('vacuum', service, {
       entity_id: this.config.entity,
@@ -116,72 +111,15 @@ class VacuumCard extends LitElement {
   getAttributes(entity) {
     const {
       status,
-      fan_speed,
-      fan_speed_list,
       battery_level,
       battery_icon,
-
-      cleaned_area,
-      cleaning_time,
-      main_brush_left,
-      side_brush_left,
-      filter_left,
-      sensor_dirty_left,
-
-      cleanArea,
-      cleanTime,
-      mainBrush,
-      sideBrush,
-      filter,
-      sensor,
     } = entity.attributes;
 
     return {
       status,
-      fan_speed,
-      fan_speed_list,
       battery_level,
       battery_icon,
-      cleaned_area: cleaned_area || cleanArea,
-      cleaning_time: cleaning_time || cleanTime,
-      main_brush_left: main_brush_left || mainBrush,
-      side_brush_left: side_brush_left || sideBrush,
-      filter_left: filter_left || filter,
-      sensor_dirty_left: sensor_dirty_left || sensor,
     };
-  }
-
-  renderSource() {
-    const { fan_speed: source, fan_speed_list: sources } = this.getAttributes(
-      this.entity
-    );
-
-    const selected = sources.indexOf(source);
-
-    return html` <paper-menu-button
-      slot="dropdown-trigger"
-      .horizontalAlign=${'right'}
-      .verticalAlign=${'top'}
-      .verticalOffset=${40}
-      .noAnimations=${true}
-      @click="${(e) => e.stopPropagation()}"
-    >
-      <paper-button class="source-menu__button" slot="dropdown-trigger">
-        <span class="source-menu__source" show=${true}>
-          ${source}
-        </span>
-        <ha-icon icon="mdi:fan"></ha-icon>
-      </paper-button>
-      <paper-listbox
-        slot="dropdown-content"
-        selected=${selected}
-        @click="${(e) => this.handleSpeed(e)}"
-      >
-        ${sources.map(
-          (item) => html`<paper-item value=${item}>${item}</paper-item>`
-        )}
-      </paper-listbox>
-    </paper-menu-button>`;
   }
 
   renderMapOrImage(state) {
@@ -194,55 +132,6 @@ class VacuumCard extends LitElement {
     }
 
     return html``;
-  }
-
-  renderStats(state) {
-    const {
-      cleaned_area,
-      cleaning_time,
-      main_brush_left,
-      side_brush_left,
-      filter_left,
-      sensor_dirty_left,
-    } = this.getAttributes(this.entity);
-
-    switch (state) {
-      case 'cleaning': {
-        return html`
-          <div class="stats-block">
-            <span class="stats-hours">${cleaned_area}</span> m<sup>2</sup>
-            <div class="stats-subtitle">Cleaning area</div>
-          </div>
-          <div class="stats-block">
-            <span class="stats-hours">${cleaning_time}</span> minutes
-            <div class="stats-subtitle">Cleaning time</div>
-          </div>
-        `;
-      }
-
-      case 'docked':
-      default: {
-        return html`
-          <div class="stats-block">
-            <span class="stats-hours">${filter_left}</span> <sup>hours</sup>
-            <div class="stats-subtitle">Filter</div>
-          </div>
-          <div class="stats-block">
-            <span class="stats-hours">${side_brush_left}</span> <sup>hours</sup>
-            <div class="stats-subtitle">Side brush</div>
-          </div>
-          <div class="stats-block">
-            <span class="stats-hours">${main_brush_left}</span> <sup>hours</sup>
-            <div class="stats-subtitle">Main brush</div>
-          </div>
-          <div class="stats-block">
-            <span class="stats-hours">${sensor_dirty_left}</span>
-            <sup>hours</sup>
-            <div class="stats-subtitle">Sensors</div>
-          </div>
-        `;
-      }
-    }
   }
 
   renderToolbar(state) {
@@ -367,19 +256,12 @@ class VacuumCard extends LitElement {
               <span class="status-text" alt=${status}>${status}</span>
               <paper-spinner ?active=${this.requestInProgress}></paper-spinner>
             </div>
-            <div class="source">
-              ${this.renderSource()}
-            </div>
             <div class="battery">
               ${battery_level}% <ha-icon icon="${battery_icon}"></ha-icon>
             </div>
           </div>
 
           ${this.renderMapOrImage(state)}
-
-          <div class="stats">
-            ${this.renderStats(state)}
-          </div>
         </div>
 
         ${this.renderToolbar(state)}
